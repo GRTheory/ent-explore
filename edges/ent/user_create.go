@@ -51,9 +51,19 @@ func (uc *UserCreate) SetNillableSpouseID(i *int) *UserCreate {
 	return uc
 }
 
-// SetSpouse sets the "spouse" edge to the User entity.
-func (uc *UserCreate) SetSpouse(u *User) *UserCreate {
-	return uc.SetSpouseID(u.ID)
+// AddFriendIDs adds the "friends" edge to the User entity by IDs.
+func (uc *UserCreate) AddFriendIDs(ids ...int) *UserCreate {
+	uc.mutation.AddFriendIDs(ids...)
+	return uc
+}
+
+// AddFriends adds the "friends" edges to the User entity.
+func (uc *UserCreate) AddFriends(u ...*User) *UserCreate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uc.AddFriendIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -153,12 +163,16 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldAge, field.TypeInt, value)
 		_node.Age = value
 	}
-	if nodes := uc.mutation.SpouseIDs(); len(nodes) > 0 {
+	if value, ok := uc.mutation.SpouseID(); ok {
+		_spec.SetField(user.FieldSpouseID, field.TypeInt, value)
+		_node.SpouseID = value
+	}
+	if nodes := uc.mutation.FriendsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.SpouseTable,
-			Columns: []string{user.SpouseColumn},
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -170,7 +184,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.SpouseID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

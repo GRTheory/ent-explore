@@ -28,15 +28,20 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
+	// M2M Bidirectional
+	return []ent.Edge{
+		edge.To("friends", User.Type),
+	}
+
 	// return []ent.Edge{
 	// 	edge.From("groups", Group.Type).
 	// 		Ref("users"),
 	// 	edge.To("pets", Pet.Type),
 	// }
 
-	return []ent.Edge{
-		edge.To("spouse", User.Type).
-			Unique().
-			Field("spouse_id"),
-	}
+	// return []ent.Edge{
+	// 	edge.To("spouse", User.Type).
+	// 		Unique().
+	// 		Field("spouse_id"),
+	// }
 }

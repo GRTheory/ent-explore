@@ -57,8 +57,8 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "age", Type: field.TypeInt},
+		{Name: "spouse_id", Type: field.TypeInt, Nullable: true},
 		{Name: "group_users", Type: field.TypeInt, Nullable: true},
-		{Name: "spouse_id", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
@@ -68,15 +68,34 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_groups_users",
-				Columns:    []*schema.Column{UsersColumns[4]},
+				Columns:    []*schema.Column{UsersColumns[5]},
 				RefColumns: []*schema.Column{GroupsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
+		},
+	}
+	// UserFriendsColumns holds the columns for the "user_friends" table.
+	UserFriendsColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "friend_id", Type: field.TypeInt},
+	}
+	// UserFriendsTable holds the schema information for the "user_friends" table.
+	UserFriendsTable = &schema.Table{
+		Name:       "user_friends",
+		Columns:    UserFriendsColumns,
+		PrimaryKey: []*schema.Column{UserFriendsColumns[0], UserFriendsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "users_users_spouse",
-				Columns:    []*schema.Column{UsersColumns[5]},
+				Symbol:     "user_friends_user_id",
+				Columns:    []*schema.Column{UserFriendsColumns[0]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_friends_friend_id",
+				Columns:    []*schema.Column{UserFriendsColumns[1]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -86,11 +105,13 @@ var (
 		NodesTable,
 		PetsTable,
 		UsersTable,
+		UserFriendsTable,
 	}
 )
 
 func init() {
 	NodesTable.ForeignKeys[0].RefTable = NodesTable
 	UsersTable.ForeignKeys[0].RefTable = GroupsTable
-	UsersTable.ForeignKeys[1].RefTable = UsersTable
+	UserFriendsTable.ForeignKeys[0].RefTable = UsersTable
+	UserFriendsTable.ForeignKeys[1].RefTable = UsersTable
 }

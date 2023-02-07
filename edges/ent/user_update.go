@@ -54,6 +54,7 @@ func (uu *UserUpdate) AddAge(i int) *UserUpdate {
 
 // SetSpouseID sets the "spouse_id" field.
 func (uu *UserUpdate) SetSpouseID(i int) *UserUpdate {
+	uu.mutation.ResetSpouseID()
 	uu.mutation.SetSpouseID(i)
 	return uu
 }
@@ -66,15 +67,31 @@ func (uu *UserUpdate) SetNillableSpouseID(i *int) *UserUpdate {
 	return uu
 }
 
+// AddSpouseID adds i to the "spouse_id" field.
+func (uu *UserUpdate) AddSpouseID(i int) *UserUpdate {
+	uu.mutation.AddSpouseID(i)
+	return uu
+}
+
 // ClearSpouseID clears the value of the "spouse_id" field.
 func (uu *UserUpdate) ClearSpouseID() *UserUpdate {
 	uu.mutation.ClearSpouseID()
 	return uu
 }
 
-// SetSpouse sets the "spouse" edge to the User entity.
-func (uu *UserUpdate) SetSpouse(u *User) *UserUpdate {
-	return uu.SetSpouseID(u.ID)
+// AddFriendIDs adds the "friends" edge to the User entity by IDs.
+func (uu *UserUpdate) AddFriendIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddFriendIDs(ids...)
+	return uu
+}
+
+// AddFriends adds the "friends" edges to the User entity.
+func (uu *UserUpdate) AddFriends(u ...*User) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.AddFriendIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -82,10 +99,25 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearSpouse clears the "spouse" edge to the User entity.
-func (uu *UserUpdate) ClearSpouse() *UserUpdate {
-	uu.mutation.ClearSpouse()
+// ClearFriends clears all "friends" edges to the User entity.
+func (uu *UserUpdate) ClearFriends() *UserUpdate {
+	uu.mutation.ClearFriends()
 	return uu
+}
+
+// RemoveFriendIDs removes the "friends" edge to User entities by IDs.
+func (uu *UserUpdate) RemoveFriendIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveFriendIDs(ids...)
+	return uu
+}
+
+// RemoveFriends removes "friends" edges to User entities.
+func (uu *UserUpdate) RemoveFriends(u ...*User) *UserUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uu.RemoveFriendIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -163,12 +195,21 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedAge(); ok {
 		_spec.AddField(user.FieldAge, field.TypeInt, value)
 	}
-	if uu.mutation.SpouseCleared() {
+	if value, ok := uu.mutation.SpouseID(); ok {
+		_spec.SetField(user.FieldSpouseID, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.AddedSpouseID(); ok {
+		_spec.AddField(user.FieldSpouseID, field.TypeInt, value)
+	}
+	if uu.mutation.SpouseIDCleared() {
+		_spec.ClearField(user.FieldSpouseID, field.TypeInt)
+	}
+	if uu.mutation.FriendsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.SpouseTable,
-			Columns: []string{user.SpouseColumn},
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -179,12 +220,31 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.SpouseIDs(); len(nodes) > 0 {
+	if nodes := uu.mutation.RemovedFriendsIDs(); len(nodes) > 0 && !uu.mutation.FriendsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.SpouseTable,
-			Columns: []string{user.SpouseColumn},
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.FriendsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -245,6 +305,7 @@ func (uuo *UserUpdateOne) AddAge(i int) *UserUpdateOne {
 
 // SetSpouseID sets the "spouse_id" field.
 func (uuo *UserUpdateOne) SetSpouseID(i int) *UserUpdateOne {
+	uuo.mutation.ResetSpouseID()
 	uuo.mutation.SetSpouseID(i)
 	return uuo
 }
@@ -257,15 +318,31 @@ func (uuo *UserUpdateOne) SetNillableSpouseID(i *int) *UserUpdateOne {
 	return uuo
 }
 
+// AddSpouseID adds i to the "spouse_id" field.
+func (uuo *UserUpdateOne) AddSpouseID(i int) *UserUpdateOne {
+	uuo.mutation.AddSpouseID(i)
+	return uuo
+}
+
 // ClearSpouseID clears the value of the "spouse_id" field.
 func (uuo *UserUpdateOne) ClearSpouseID() *UserUpdateOne {
 	uuo.mutation.ClearSpouseID()
 	return uuo
 }
 
-// SetSpouse sets the "spouse" edge to the User entity.
-func (uuo *UserUpdateOne) SetSpouse(u *User) *UserUpdateOne {
-	return uuo.SetSpouseID(u.ID)
+// AddFriendIDs adds the "friends" edge to the User entity by IDs.
+func (uuo *UserUpdateOne) AddFriendIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddFriendIDs(ids...)
+	return uuo
+}
+
+// AddFriends adds the "friends" edges to the User entity.
+func (uuo *UserUpdateOne) AddFriends(u ...*User) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.AddFriendIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -273,10 +350,25 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearSpouse clears the "spouse" edge to the User entity.
-func (uuo *UserUpdateOne) ClearSpouse() *UserUpdateOne {
-	uuo.mutation.ClearSpouse()
+// ClearFriends clears all "friends" edges to the User entity.
+func (uuo *UserUpdateOne) ClearFriends() *UserUpdateOne {
+	uuo.mutation.ClearFriends()
 	return uuo
+}
+
+// RemoveFriendIDs removes the "friends" edge to User entities by IDs.
+func (uuo *UserUpdateOne) RemoveFriendIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveFriendIDs(ids...)
+	return uuo
+}
+
+// RemoveFriends removes "friends" edges to User entities.
+func (uuo *UserUpdateOne) RemoveFriends(u ...*User) *UserUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return uuo.RemoveFriendIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -378,12 +470,21 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.AddedAge(); ok {
 		_spec.AddField(user.FieldAge, field.TypeInt, value)
 	}
-	if uuo.mutation.SpouseCleared() {
+	if value, ok := uuo.mutation.SpouseID(); ok {
+		_spec.SetField(user.FieldSpouseID, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.AddedSpouseID(); ok {
+		_spec.AddField(user.FieldSpouseID, field.TypeInt, value)
+	}
+	if uuo.mutation.SpouseIDCleared() {
+		_spec.ClearField(user.FieldSpouseID, field.TypeInt)
+	}
+	if uuo.mutation.FriendsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.SpouseTable,
-			Columns: []string{user.SpouseColumn},
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -394,12 +495,31 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.SpouseIDs(); len(nodes) > 0 {
+	if nodes := uuo.mutation.RemovedFriendsIDs(); len(nodes) > 0 && !uuo.mutation.FriendsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   user.SpouseTable,
-			Columns: []string{user.SpouseColumn},
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
+			Bidi:    true,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.FriendsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.FriendsTable,
+			Columns: user.FriendsPrimaryKey,
 			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

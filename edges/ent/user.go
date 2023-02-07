@@ -31,24 +31,20 @@ type User struct {
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Spouse holds the value of the spouse edge.
-	Spouse *User `json:"spouse,omitempty"`
+	// Friends holds the value of the friends edge.
+	Friends []*User `json:"friends,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// SpouseOrErr returns the Spouse value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserEdges) SpouseOrErr() (*User, error) {
+// FriendsOrErr returns the Friends value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FriendsOrErr() ([]*User, error) {
 	if e.loadedTypes[0] {
-		if e.Spouse == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
-		return e.Spouse, nil
+		return e.Friends, nil
 	}
-	return nil, &NotLoadedError{edge: "spouse"}
+	return nil, &NotLoadedError{edge: "friends"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -119,9 +115,9 @@ func (u *User) assignValues(columns []string, values []any) error {
 	return nil
 }
 
-// QuerySpouse queries the "spouse" edge of the User entity.
-func (u *User) QuerySpouse() *UserQuery {
-	return NewUserClient(u.config).QuerySpouse(u)
+// QueryFriends queries the "friends" edge of the User entity.
+func (u *User) QueryFriends() *UserQuery {
+	return NewUserClient(u.config).QueryFriends(u)
 }
 
 // Update returns a builder for updating this User.

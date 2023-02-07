@@ -263,6 +263,26 @@ func SpouseIDNotIn(vs ...int) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldSpouseID, vs...))
 }
 
+// SpouseIDGT applies the GT predicate on the "spouse_id" field.
+func SpouseIDGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldSpouseID, v))
+}
+
+// SpouseIDGTE applies the GTE predicate on the "spouse_id" field.
+func SpouseIDGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldSpouseID, v))
+}
+
+// SpouseIDLT applies the LT predicate on the "spouse_id" field.
+func SpouseIDLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldSpouseID, v))
+}
+
+// SpouseIDLTE applies the LTE predicate on the "spouse_id" field.
+func SpouseIDLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldSpouseID, v))
+}
+
 // SpouseIDIsNil applies the IsNil predicate on the "spouse_id" field.
 func SpouseIDIsNil() predicate.User {
 	return predicate.User(sql.FieldIsNull(FieldSpouseID))
@@ -273,24 +293,24 @@ func SpouseIDNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldSpouseID))
 }
 
-// HasSpouse applies the HasEdge predicate on the "spouse" edge.
-func HasSpouse() predicate.User {
+// HasFriends applies the HasEdge predicate on the "friends" edge.
+func HasFriends() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, SpouseTable, SpouseColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, FriendsTable, FriendsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasSpouseWith applies the HasEdge predicate on the "spouse" edge with a given conditions (other predicates).
-func HasSpouseWith(preds ...predicate.User) predicate.User {
+// HasFriendsWith applies the HasEdge predicate on the "friends" edge with a given conditions (other predicates).
+func HasFriendsWith(preds ...predicate.User) predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, SpouseTable, SpouseColumn),
+			sqlgraph.Edge(sqlgraph.M2M, false, FriendsTable, FriendsPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
