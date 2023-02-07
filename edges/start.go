@@ -6,9 +6,10 @@ import (
 
 	"github.com/GRTheory/ent-explore/edges/ent"
 	"github.com/GRTheory/ent-explore/edges/ent/node"
+	"github.com/GRTheory/ent-explore/edges/ent/user"
 )
 
-// the command to add a new schema 
+// the command to add a new schema
 // is " go run -mod=mod entgo.io/ent/cmd/ent init xxx "
 
 func Do(ctx context.Context, client *ent.Client) error {
@@ -49,6 +50,48 @@ func Do(ctx context.Context, client *ent.Client) error {
 		return fmt.Errorf("gettting head's prev: %w", err)
 	}
 	fmt.Printf("\n%v", prev.Value == tail.Value)
-	
+
+	return nil
+}
+
+func DoO2OBidirectional(ctx context.Context, client *ent.Client) error {
+	a8m, err := client.User.
+		Create().
+		SetAge(30).
+		SetName("a8m").
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("creating user: %w", err)
+	}
+	nati, err := client.User.
+		Create().
+		SetAge(28).
+		SetName("nati").
+		SetSpouse(a8m).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("creating user: %w", err)
+	}
+
+	// Query the spouse edge.
+	// Unlike `Only`, `OnlyX` panics if an error occurs.
+	spouse := nati.QuerySpouse().OnlyX(ctx)
+	fmt.Println(spouse.Name)
+
+	// Query how many users have a spouse.
+	// Unlike `Count`, `CountX` panics if an error occurs.
+	count := client.User.
+		Query().
+		Where(user.HasSpouse()).
+		CountX(ctx)
+	fmt.Println(count)
+
+	// Get the user, that has a spouse with name="a8m"
+	spouse = client.User.
+		Query().
+		Where(user.HasSpouseWith(user.Name("a8m"))).
+		OnlyX(ctx)
+	fmt.Println(spouse.Name)
+
 	return nil
 }

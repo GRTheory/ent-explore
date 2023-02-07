@@ -20,6 +20,9 @@ func (User) Fields() []ent.Field {
 			Unique().
 			NotEmpty(),
 		field.Int("age"),
+		// a foreign key
+		field.Int("spouse_id").
+			Optional(),
 	}
 }
 
@@ -33,6 +36,7 @@ func (User) Edges() []ent.Edge {
 
 	return []ent.Edge{
 		edge.To("spouse", User.Type).
-			Unique(),
+			Unique().
+			Field("spouse_id"),
 	}
 }
