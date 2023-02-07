@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/GRTheory/ent-explore/edges/ent/group"
+	"github.com/GRTheory/ent-explore/edges/ent/node"
 	"github.com/GRTheory/ent-explore/edges/ent/pet"
 	"github.com/GRTheory/ent-explore/edges/ent/user"
 )
@@ -42,6 +43,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		group.Table: group.ValidColumn,
+		node.Table:  node.ValidColumn,
 		pet.Table:   pet.ValidColumn,
 		user.Table:  user.ValidColumn,
 	}

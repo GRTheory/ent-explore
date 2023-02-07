@@ -4,6 +4,7 @@ package ent
 
 import (
 	"github.com/GRTheory/ent-explore/edges/ent/group"
+	"github.com/GRTheory/ent-explore/edges/ent/node"
 	"github.com/GRTheory/ent-explore/edges/ent/pet"
 	"github.com/GRTheory/ent-explore/edges/ent/schema"
 	"github.com/GRTheory/ent-explore/edges/ent/user"
@@ -19,6 +20,12 @@ func init() {
 	groupDescGroupName := groupFields[0].Descriptor()
 	// group.GroupNameValidator is a validator for the "group_name" field. It is called by the builders before save.
 	group.GroupNameValidator = groupDescGroupName.Validators[0].(func(string) error)
+	nodeFields := schema.Node{}.Fields()
+	_ = nodeFields
+	// nodeDescValue is the schema descriptor for value field.
+	nodeDescValue := nodeFields[0].Descriptor()
+	// node.ValueValidator is a validator for the "value" field. It is called by the builders before save.
+	node.ValueValidator = nodeDescValue.Validators[0].(func(int) error)
 	petFields := schema.Pet{}.Fields()
 	_ = petFields
 	// petDescName is the schema descriptor for name field.
