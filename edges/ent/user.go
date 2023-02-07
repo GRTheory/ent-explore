@@ -21,11 +21,12 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Age holds the value of the "age" field.
 	Age int `json:"age,omitempty"`
+	// SpouseID holds the value of the "spouse_id" field.
+	SpouseID int `json:"spouse_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges       UserEdges `json:"edges"`
 	group_users *int
-	user_spouse *int
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
@@ -55,13 +56,11 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID, user.FieldAge:
+		case user.FieldID, user.FieldAge, user.FieldSpouseID:
 			values[i] = new(sql.NullInt64)
 		case user.FieldName, user.FieldEmail:
 			values[i] = new(sql.NullString)
 		case user.ForeignKeys[0]: // group_users
-			values[i] = new(sql.NullInt64)
-		case user.ForeignKeys[1]: // user_spouse
 			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
@@ -102,19 +101,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Age = int(value.Int64)
 			}
+		case user.FieldSpouseID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field spouse_id", values[i])
+			} else if value.Valid {
+				u.SpouseID = int(value.Int64)
+			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field group_users", value)
 			} else if value.Valid {
 				u.group_users = new(int)
 				*u.group_users = int(value.Int64)
-			}
-		case user.ForeignKeys[1]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_spouse", value)
-			} else if value.Valid {
-				u.user_spouse = new(int)
-				*u.user_spouse = int(value.Int64)
 			}
 		}
 	}
@@ -157,6 +155,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("age=")
 	builder.WriteString(fmt.Sprintf("%v", u.Age))
+	builder.WriteString(", ")
+	builder.WriteString("spouse_id=")
+	builder.WriteString(fmt.Sprintf("%v", u.SpouseID))
 	builder.WriteByte(')')
 	return builder.String()
 }

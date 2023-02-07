@@ -68,6 +68,11 @@ func Age(v int) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAge, v))
 }
 
+// SpouseID applies equality check predicate on the "spouse_id" field. It's identical to SpouseIDEQ.
+func SpouseID(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldSpouseID, v))
+}
+
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldName, v))
@@ -236,6 +241,36 @@ func AgeLT(v int) predicate.User {
 // AgeLTE applies the LTE predicate on the "age" field.
 func AgeLTE(v int) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldAge, v))
+}
+
+// SpouseIDEQ applies the EQ predicate on the "spouse_id" field.
+func SpouseIDEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldSpouseID, v))
+}
+
+// SpouseIDNEQ applies the NEQ predicate on the "spouse_id" field.
+func SpouseIDNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldSpouseID, v))
+}
+
+// SpouseIDIn applies the In predicate on the "spouse_id" field.
+func SpouseIDIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldSpouseID, vs...))
+}
+
+// SpouseIDNotIn applies the NotIn predicate on the "spouse_id" field.
+func SpouseIDNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldSpouseID, vs...))
+}
+
+// SpouseIDIsNil applies the IsNil predicate on the "spouse_id" field.
+func SpouseIDIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldSpouseID))
+}
+
+// SpouseIDNotNil applies the NotNil predicate on the "spouse_id" field.
+func SpouseIDNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldSpouseID))
 }
 
 // HasSpouse applies the HasEdge predicate on the "spouse" edge.

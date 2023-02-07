@@ -37,16 +37,16 @@ func (uc *UserCreate) SetAge(i int) *UserCreate {
 	return uc
 }
 
-// SetSpouseID sets the "spouse" edge to the User entity by ID.
-func (uc *UserCreate) SetSpouseID(id int) *UserCreate {
-	uc.mutation.SetSpouseID(id)
+// SetSpouseID sets the "spouse_id" field.
+func (uc *UserCreate) SetSpouseID(i int) *UserCreate {
+	uc.mutation.SetSpouseID(i)
 	return uc
 }
 
-// SetNillableSpouseID sets the "spouse" edge to the User entity by ID if the given value is not nil.
-func (uc *UserCreate) SetNillableSpouseID(id *int) *UserCreate {
-	if id != nil {
-		uc = uc.SetSpouseID(*id)
+// SetNillableSpouseID sets the "spouse_id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableSpouseID(i *int) *UserCreate {
+	if i != nil {
+		uc.SetSpouseID(*i)
 	}
 	return uc
 }
@@ -170,7 +170,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_spouse = &nodes[0]
+		_node.SpouseID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

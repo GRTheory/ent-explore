@@ -23,7 +23,7 @@ var (
 	NodesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "value", Type: field.TypeInt, Unique: true},
-		{Name: "node_next", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "node_children", Type: field.TypeInt, Nullable: true},
 	}
 	// NodesTable holds the schema information for the "nodes" table.
 	NodesTable = &schema.Table{
@@ -32,7 +32,7 @@ var (
 		PrimaryKey: []*schema.Column{NodesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "nodes_nodes_next",
+				Symbol:     "nodes_nodes_children",
 				Columns:    []*schema.Column{NodesColumns[2]},
 				RefColumns: []*schema.Column{NodesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -58,7 +58,7 @@ var (
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "age", Type: field.TypeInt},
 		{Name: "group_users", Type: field.TypeInt, Nullable: true},
-		{Name: "user_spouse", Type: field.TypeInt, Unique: true, Nullable: true},
+		{Name: "spouse_id", Type: field.TypeInt, Unique: true, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

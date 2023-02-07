@@ -52,17 +52,23 @@ func (uu *UserUpdate) AddAge(i int) *UserUpdate {
 	return uu
 }
 
-// SetSpouseID sets the "spouse" edge to the User entity by ID.
-func (uu *UserUpdate) SetSpouseID(id int) *UserUpdate {
-	uu.mutation.SetSpouseID(id)
+// SetSpouseID sets the "spouse_id" field.
+func (uu *UserUpdate) SetSpouseID(i int) *UserUpdate {
+	uu.mutation.SetSpouseID(i)
 	return uu
 }
 
-// SetNillableSpouseID sets the "spouse" edge to the User entity by ID if the given value is not nil.
-func (uu *UserUpdate) SetNillableSpouseID(id *int) *UserUpdate {
-	if id != nil {
-		uu = uu.SetSpouseID(*id)
+// SetNillableSpouseID sets the "spouse_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableSpouseID(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetSpouseID(*i)
 	}
+	return uu
+}
+
+// ClearSpouseID clears the value of the "spouse_id" field.
+func (uu *UserUpdate) ClearSpouseID() *UserUpdate {
+	uu.mutation.ClearSpouseID()
 	return uu
 }
 
@@ -237,17 +243,23 @@ func (uuo *UserUpdateOne) AddAge(i int) *UserUpdateOne {
 	return uuo
 }
 
-// SetSpouseID sets the "spouse" edge to the User entity by ID.
-func (uuo *UserUpdateOne) SetSpouseID(id int) *UserUpdateOne {
-	uuo.mutation.SetSpouseID(id)
+// SetSpouseID sets the "spouse_id" field.
+func (uuo *UserUpdateOne) SetSpouseID(i int) *UserUpdateOne {
+	uuo.mutation.SetSpouseID(i)
 	return uuo
 }
 
-// SetNillableSpouseID sets the "spouse" edge to the User entity by ID if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableSpouseID(id *int) *UserUpdateOne {
-	if id != nil {
-		uuo = uuo.SetSpouseID(*id)
+// SetNillableSpouseID sets the "spouse_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSpouseID(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetSpouseID(*i)
 	}
+	return uuo
+}
+
+// ClearSpouseID clears the value of the "spouse_id" field.
+func (uuo *UserUpdateOne) ClearSpouseID() *UserUpdateOne {
+	uuo.mutation.ClearSpouseID()
 	return uuo
 }
 

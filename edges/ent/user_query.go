@@ -409,10 +409,7 @@ func (uq *UserQuery) loadSpouse(ctx context.Context, query *UserQuery, nodes []*
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*User)
 	for i := range nodes {
-		if nodes[i].user_spouse == nil {
-			continue
-		}
-		fk := *nodes[i].user_spouse
+		fk := nodes[i].SpouseID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -429,7 +426,7 @@ func (uq *UserQuery) loadSpouse(ctx context.Context, query *UserQuery, nodes []*
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_spouse" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "spouse_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)

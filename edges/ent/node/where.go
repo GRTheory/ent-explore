@@ -98,24 +98,24 @@ func ValueLTE(v int) predicate.Node {
 	return predicate.Node(sql.FieldLTE(FieldValue, v))
 }
 
-// HasNext applies the HasEdge predicate on the "next" edge.
-func HasNext() predicate.Node {
+// HasParent applies the HasEdge predicate on the "parent" edge.
+func HasParent() predicate.Node {
 	return predicate.Node(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, NextTable, NextColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasNextWith applies the HasEdge predicate on the "next" edge with a given conditions (other predicates).
-func HasNextWith(preds ...predicate.Node) predicate.Node {
+// HasParentWith applies the HasEdge predicate on the "parent" edge with a given conditions (other predicates).
+func HasParentWith(preds ...predicate.Node) predicate.Node {
 	return predicate.Node(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, NextTable, NextColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, ParentTable, ParentColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -125,24 +125,24 @@ func HasNextWith(preds ...predicate.Node) predicate.Node {
 	})
 }
 
-// HasPrev applies the HasEdge predicate on the "prev" edge.
-func HasPrev() predicate.Node {
+// HasChildren applies the HasEdge predicate on the "children" edge.
+func HasChildren() predicate.Node {
 	return predicate.Node(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, PrevTable, PrevColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasPrevWith applies the HasEdge predicate on the "prev" edge with a given conditions (other predicates).
-func HasPrevWith(preds ...predicate.Node) predicate.Node {
+// HasChildrenWith applies the HasEdge predicate on the "children" edge with a given conditions (other predicates).
+func HasChildrenWith(preds ...predicate.Node) predicate.Node {
 	return predicate.Node(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, PrevTable, PrevColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChildrenTable, ChildrenColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

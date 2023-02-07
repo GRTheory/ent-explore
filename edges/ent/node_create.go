@@ -25,42 +25,38 @@ func (nc *NodeCreate) SetValue(i int) *NodeCreate {
 	return nc
 }
 
-// SetNextID sets the "next" edge to the Node entity by ID.
-func (nc *NodeCreate) SetNextID(id int) *NodeCreate {
-	nc.mutation.SetNextID(id)
+// SetParentID sets the "parent" edge to the Node entity by ID.
+func (nc *NodeCreate) SetParentID(id int) *NodeCreate {
+	nc.mutation.SetParentID(id)
 	return nc
 }
 
-// SetNillableNextID sets the "next" edge to the Node entity by ID if the given value is not nil.
-func (nc *NodeCreate) SetNillableNextID(id *int) *NodeCreate {
+// SetNillableParentID sets the "parent" edge to the Node entity by ID if the given value is not nil.
+func (nc *NodeCreate) SetNillableParentID(id *int) *NodeCreate {
 	if id != nil {
-		nc = nc.SetNextID(*id)
+		nc = nc.SetParentID(*id)
 	}
 	return nc
 }
 
-// SetNext sets the "next" edge to the Node entity.
-func (nc *NodeCreate) SetNext(n *Node) *NodeCreate {
-	return nc.SetNextID(n.ID)
+// SetParent sets the "parent" edge to the Node entity.
+func (nc *NodeCreate) SetParent(n *Node) *NodeCreate {
+	return nc.SetParentID(n.ID)
 }
 
-// SetPrevID sets the "prev" edge to the Node entity by ID.
-func (nc *NodeCreate) SetPrevID(id int) *NodeCreate {
-	nc.mutation.SetPrevID(id)
+// AddChildIDs adds the "children" edge to the Node entity by IDs.
+func (nc *NodeCreate) AddChildIDs(ids ...int) *NodeCreate {
+	nc.mutation.AddChildIDs(ids...)
 	return nc
 }
 
-// SetNillablePrevID sets the "prev" edge to the Node entity by ID if the given value is not nil.
-func (nc *NodeCreate) SetNillablePrevID(id *int) *NodeCreate {
-	if id != nil {
-		nc = nc.SetPrevID(*id)
+// AddChildren adds the "children" edges to the Node entity.
+func (nc *NodeCreate) AddChildren(n ...*Node) *NodeCreate {
+	ids := make([]int, len(n))
+	for i := range n {
+		ids[i] = n[i].ID
 	}
-	return nc
-}
-
-// SetPrev sets the "prev" edge to the Node entity.
-func (nc *NodeCreate) SetPrev(n *Node) *NodeCreate {
-	return nc.SetPrevID(n.ID)
+	return nc.AddChildIDs(ids...)
 }
 
 // Mutation returns the NodeMutation object of the builder.
@@ -141,32 +137,12 @@ func (nc *NodeCreate) createSpec() (*Node, *sqlgraph.CreateSpec) {
 		_spec.SetField(node.FieldValue, field.TypeInt, value)
 		_node.Value = value
 	}
-	if nodes := nc.mutation.NextIDs(); len(nodes) > 0 {
+	if nodes := nc.mutation.ParentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   node.NextTable,
-			Columns: []string{node.NextColumn},
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: node.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.node_next = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := nc.mutation.PrevIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
+			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   node.PrevTable,
-			Columns: []string{node.PrevColumn},
+			Table:   node.ParentTable,
+			Columns: []string{node.ParentColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -178,7 +154,26 @@ func (nc *NodeCreate) createSpec() (*Node, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.node_next = &nodes[0]
+		_node.node_children = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := nc.mutation.ChildrenIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   node.ChildrenTable,
+			Columns: []string{node.ChildrenColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: node.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

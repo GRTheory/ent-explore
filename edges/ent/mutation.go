@@ -455,19 +455,20 @@ func (m *GroupMutation) ResetEdge(name string) error {
 // NodeMutation represents an operation that mutates the Node nodes in the graph.
 type NodeMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	value         *int
-	addvalue      *int
-	clearedFields map[string]struct{}
-	next          *int
-	clearednext   bool
-	prev          *int
-	clearedprev   bool
-	done          bool
-	oldValue      func(context.Context) (*Node, error)
-	predicates    []predicate.Node
+	op              Op
+	typ             string
+	id              *int
+	value           *int
+	addvalue        *int
+	clearedFields   map[string]struct{}
+	parent          *int
+	clearedparent   bool
+	children        map[int]struct{}
+	removedchildren map[int]struct{}
+	clearedchildren bool
+	done            bool
+	oldValue        func(context.Context) (*Node, error)
+	predicates      []predicate.Node
 }
 
 var _ ent.Mutation = (*NodeMutation)(nil)
@@ -624,82 +625,97 @@ func (m *NodeMutation) ResetValue() {
 	m.addvalue = nil
 }
 
-// SetNextID sets the "next" edge to the Node entity by id.
-func (m *NodeMutation) SetNextID(id int) {
-	m.next = &id
+// SetParentID sets the "parent" edge to the Node entity by id.
+func (m *NodeMutation) SetParentID(id int) {
+	m.parent = &id
 }
 
-// ClearNext clears the "next" edge to the Node entity.
-func (m *NodeMutation) ClearNext() {
-	m.clearednext = true
+// ClearParent clears the "parent" edge to the Node entity.
+func (m *NodeMutation) ClearParent() {
+	m.clearedparent = true
 }
 
-// NextCleared reports if the "next" edge to the Node entity was cleared.
-func (m *NodeMutation) NextCleared() bool {
-	return m.clearednext
+// ParentCleared reports if the "parent" edge to the Node entity was cleared.
+func (m *NodeMutation) ParentCleared() bool {
+	return m.clearedparent
 }
 
-// NextID returns the "next" edge ID in the mutation.
-func (m *NodeMutation) NextID() (id int, exists bool) {
-	if m.next != nil {
-		return *m.next, true
+// ParentID returns the "parent" edge ID in the mutation.
+func (m *NodeMutation) ParentID() (id int, exists bool) {
+	if m.parent != nil {
+		return *m.parent, true
 	}
 	return
 }
 
-// NextIDs returns the "next" edge IDs in the mutation.
+// ParentIDs returns the "parent" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// NextID instead. It exists only for internal usage by the builders.
-func (m *NodeMutation) NextIDs() (ids []int) {
-	if id := m.next; id != nil {
+// ParentID instead. It exists only for internal usage by the builders.
+func (m *NodeMutation) ParentIDs() (ids []int) {
+	if id := m.parent; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetNext resets all changes to the "next" edge.
-func (m *NodeMutation) ResetNext() {
-	m.next = nil
-	m.clearednext = false
+// ResetParent resets all changes to the "parent" edge.
+func (m *NodeMutation) ResetParent() {
+	m.parent = nil
+	m.clearedparent = false
 }
 
-// SetPrevID sets the "prev" edge to the Node entity by id.
-func (m *NodeMutation) SetPrevID(id int) {
-	m.prev = &id
+// AddChildIDs adds the "children" edge to the Node entity by ids.
+func (m *NodeMutation) AddChildIDs(ids ...int) {
+	if m.children == nil {
+		m.children = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.children[ids[i]] = struct{}{}
+	}
 }
 
-// ClearPrev clears the "prev" edge to the Node entity.
-func (m *NodeMutation) ClearPrev() {
-	m.clearedprev = true
+// ClearChildren clears the "children" edge to the Node entity.
+func (m *NodeMutation) ClearChildren() {
+	m.clearedchildren = true
 }
 
-// PrevCleared reports if the "prev" edge to the Node entity was cleared.
-func (m *NodeMutation) PrevCleared() bool {
-	return m.clearedprev
+// ChildrenCleared reports if the "children" edge to the Node entity was cleared.
+func (m *NodeMutation) ChildrenCleared() bool {
+	return m.clearedchildren
 }
 
-// PrevID returns the "prev" edge ID in the mutation.
-func (m *NodeMutation) PrevID() (id int, exists bool) {
-	if m.prev != nil {
-		return *m.prev, true
+// RemoveChildIDs removes the "children" edge to the Node entity by IDs.
+func (m *NodeMutation) RemoveChildIDs(ids ...int) {
+	if m.removedchildren == nil {
+		m.removedchildren = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.children, ids[i])
+		m.removedchildren[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChildren returns the removed IDs of the "children" edge to the Node entity.
+func (m *NodeMutation) RemovedChildrenIDs() (ids []int) {
+	for id := range m.removedchildren {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// PrevIDs returns the "prev" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// PrevID instead. It exists only for internal usage by the builders.
-func (m *NodeMutation) PrevIDs() (ids []int) {
-	if id := m.prev; id != nil {
-		ids = append(ids, *id)
+// ChildrenIDs returns the "children" edge IDs in the mutation.
+func (m *NodeMutation) ChildrenIDs() (ids []int) {
+	for id := range m.children {
+		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetPrev resets all changes to the "prev" edge.
-func (m *NodeMutation) ResetPrev() {
-	m.prev = nil
-	m.clearedprev = false
+// ResetChildren resets all changes to the "children" edge.
+func (m *NodeMutation) ResetChildren() {
+	m.children = nil
+	m.clearedchildren = false
+	m.removedchildren = nil
 }
 
 // Where appends a list predicates to the NodeMutation builder.
@@ -851,11 +867,11 @@ func (m *NodeMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *NodeMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.next != nil {
-		edges = append(edges, node.EdgeNext)
+	if m.parent != nil {
+		edges = append(edges, node.EdgeParent)
 	}
-	if m.prev != nil {
-		edges = append(edges, node.EdgePrev)
+	if m.children != nil {
+		edges = append(edges, node.EdgeChildren)
 	}
 	return edges
 }
@@ -864,14 +880,16 @@ func (m *NodeMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *NodeMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case node.EdgeNext:
-		if id := m.next; id != nil {
+	case node.EdgeParent:
+		if id := m.parent; id != nil {
 			return []ent.Value{*id}
 		}
-	case node.EdgePrev:
-		if id := m.prev; id != nil {
-			return []ent.Value{*id}
+	case node.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.children))
+		for id := range m.children {
+			ids = append(ids, id)
 		}
+		return ids
 	}
 	return nil
 }
@@ -879,23 +897,34 @@ func (m *NodeMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *NodeMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 2)
+	if m.removedchildren != nil {
+		edges = append(edges, node.EdgeChildren)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *NodeMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case node.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.removedchildren))
+		for id := range m.removedchildren {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *NodeMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearednext {
-		edges = append(edges, node.EdgeNext)
+	if m.clearedparent {
+		edges = append(edges, node.EdgeParent)
 	}
-	if m.clearedprev {
-		edges = append(edges, node.EdgePrev)
+	if m.clearedchildren {
+		edges = append(edges, node.EdgeChildren)
 	}
 	return edges
 }
@@ -904,10 +933,10 @@ func (m *NodeMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *NodeMutation) EdgeCleared(name string) bool {
 	switch name {
-	case node.EdgeNext:
-		return m.clearednext
-	case node.EdgePrev:
-		return m.clearedprev
+	case node.EdgeParent:
+		return m.clearedparent
+	case node.EdgeChildren:
+		return m.clearedchildren
 	}
 	return false
 }
@@ -916,11 +945,8 @@ func (m *NodeMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *NodeMutation) ClearEdge(name string) error {
 	switch name {
-	case node.EdgeNext:
-		m.ClearNext()
-		return nil
-	case node.EdgePrev:
-		m.ClearPrev()
+	case node.EdgeParent:
+		m.ClearParent()
 		return nil
 	}
 	return fmt.Errorf("unknown Node unique edge %s", name)
@@ -930,11 +956,11 @@ func (m *NodeMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *NodeMutation) ResetEdge(name string) error {
 	switch name {
-	case node.EdgeNext:
-		m.ResetNext()
+	case node.EdgeParent:
+		m.ResetParent()
 		return nil
-	case node.EdgePrev:
-		m.ResetPrev()
+	case node.EdgeChildren:
+		m.ResetChildren()
 		return nil
 	}
 	return fmt.Errorf("unknown Node edge %s", name)
@@ -1600,9 +1626,53 @@ func (m *UserMutation) ResetAge() {
 	m.addage = nil
 }
 
-// SetSpouseID sets the "spouse" edge to the User entity by id.
-func (m *UserMutation) SetSpouseID(id int) {
-	m.spouse = &id
+// SetSpouseID sets the "spouse_id" field.
+func (m *UserMutation) SetSpouseID(i int) {
+	m.spouse = &i
+}
+
+// SpouseID returns the value of the "spouse_id" field in the mutation.
+func (m *UserMutation) SpouseID() (r int, exists bool) {
+	v := m.spouse
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSpouseID returns the old "spouse_id" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldSpouseID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSpouseID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSpouseID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSpouseID: %w", err)
+	}
+	return oldValue.SpouseID, nil
+}
+
+// ClearSpouseID clears the value of the "spouse_id" field.
+func (m *UserMutation) ClearSpouseID() {
+	m.spouse = nil
+	m.clearedFields[user.FieldSpouseID] = struct{}{}
+}
+
+// SpouseIDCleared returns if the "spouse_id" field was cleared in this mutation.
+func (m *UserMutation) SpouseIDCleared() bool {
+	_, ok := m.clearedFields[user.FieldSpouseID]
+	return ok
+}
+
+// ResetSpouseID resets all changes to the "spouse_id" field.
+func (m *UserMutation) ResetSpouseID() {
+	m.spouse = nil
+	delete(m.clearedFields, user.FieldSpouseID)
 }
 
 // ClearSpouse clears the "spouse" edge to the User entity.
@@ -1612,15 +1682,7 @@ func (m *UserMutation) ClearSpouse() {
 
 // SpouseCleared reports if the "spouse" edge to the User entity was cleared.
 func (m *UserMutation) SpouseCleared() bool {
-	return m.clearedspouse
-}
-
-// SpouseID returns the "spouse" edge ID in the mutation.
-func (m *UserMutation) SpouseID() (id int, exists bool) {
-	if m.spouse != nil {
-		return *m.spouse, true
-	}
-	return
+	return m.SpouseIDCleared() || m.clearedspouse
 }
 
 // SpouseIDs returns the "spouse" edge IDs in the mutation.
@@ -1673,7 +1735,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.name != nil {
 		fields = append(fields, user.FieldName)
 	}
@@ -1682,6 +1744,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.age != nil {
 		fields = append(fields, user.FieldAge)
+	}
+	if m.spouse != nil {
+		fields = append(fields, user.FieldSpouseID)
 	}
 	return fields
 }
@@ -1697,6 +1762,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldAge:
 		return m.Age()
+	case user.FieldSpouseID:
+		return m.SpouseID()
 	}
 	return nil, false
 }
@@ -1712,6 +1779,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldAge:
 		return m.OldAge(ctx)
+	case user.FieldSpouseID:
+		return m.OldSpouseID(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1741,6 +1810,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAge(v)
+		return nil
+	case user.FieldSpouseID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSpouseID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1786,7 +1862,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldSpouseID) {
+		fields = append(fields, user.FieldSpouseID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1799,6 +1879,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldSpouseID:
+		m.ClearSpouseID()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -1814,6 +1899,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAge:
 		m.ResetAge()
+		return nil
+	case user.FieldSpouseID:
+		m.ResetSpouseID()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

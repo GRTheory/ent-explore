@@ -13,6 +13,8 @@ const (
 	FieldEmail = "email"
 	// FieldAge holds the string denoting the age field in the database.
 	FieldAge = "age"
+	// FieldSpouseID holds the string denoting the spouse_id field in the database.
+	FieldSpouseID = "spouse_id"
 	// EdgeSpouse holds the string denoting the spouse edge name in mutations.
 	EdgeSpouse = "spouse"
 	// Table holds the table name of the user in the database.
@@ -20,7 +22,7 @@ const (
 	// SpouseTable is the table that holds the spouse relation/edge.
 	SpouseTable = "users"
 	// SpouseColumn is the table column denoting the spouse relation/edge.
-	SpouseColumn = "user_spouse"
+	SpouseColumn = "spouse_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -29,13 +31,13 @@ var Columns = []string{
 	FieldName,
 	FieldEmail,
 	FieldAge,
+	FieldSpouseID,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"group_users",
-	"user_spouse",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

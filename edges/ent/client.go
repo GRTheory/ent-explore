@@ -396,15 +396,15 @@ func (c *NodeClient) GetX(ctx context.Context, id int) *Node {
 	return obj
 }
 
-// QueryNext queries the next edge of a Node.
-func (c *NodeClient) QueryNext(n *Node) *NodeQuery {
+// QueryParent queries the parent edge of a Node.
+func (c *NodeClient) QueryParent(n *Node) *NodeQuery {
 	query := (&NodeClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := n.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(node.Table, node.FieldID, id),
 			sqlgraph.To(node.Table, node.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, node.NextTable, node.NextColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, node.ParentTable, node.ParentColumn),
 		)
 		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
 		return fromV, nil
@@ -412,15 +412,15 @@ func (c *NodeClient) QueryNext(n *Node) *NodeQuery {
 	return query
 }
 
-// QueryPrev queries the prev edge of a Node.
-func (c *NodeClient) QueryPrev(n *Node) *NodeQuery {
+// QueryChildren queries the children edge of a Node.
+func (c *NodeClient) QueryChildren(n *Node) *NodeQuery {
 	query := (&NodeClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := n.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(node.Table, node.FieldID, id),
 			sqlgraph.To(node.Table, node.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, node.PrevTable, node.PrevColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, node.ChildrenTable, node.ChildrenColumn),
 		)
 		fromV = sqlgraph.Neighbors(n.driver.Dialect(), step)
 		return fromV, nil
