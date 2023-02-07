@@ -14,15 +14,16 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			NotEmpty(),
-		field.String("email").
-			Unique().
-			NotEmpty(),
-		field.Int("age"),
-		// a foreign key
-		field.Int("spouse_id").
-			Optional(),
+		field.String("name").Default("unknown"),
+		// field.String("name").
+		// 	NotEmpty(),
+		// field.String("email").
+		// 	Unique().
+		// 	NotEmpty(),
+		// field.Int("age"),
+		// // a foreign key
+		// field.Int("spouse_id").
+		// 	Optional(),
 	}
 }
 
@@ -30,7 +31,9 @@ func (User) Fields() []ent.Field {
 func (User) Edges() []ent.Edge {
 	// M2M Bidirectional
 	return []ent.Edge{
-		edge.To("friends", User.Type),
+		edge.To("friends", User.Type).
+			Through("friendships", Friendship.Type),
+		// edge.To("friends", User.Type),
 	}
 
 	// return []ent.Edge{
