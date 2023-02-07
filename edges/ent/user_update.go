@@ -10,8 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/GRTheory/ent-explore/edges/ent/group"
-	"github.com/GRTheory/ent-explore/edges/ent/pet"
 	"github.com/GRTheory/ent-explore/edges/ent/predicate"
 	"github.com/GRTheory/ent-explore/edges/ent/user"
 )
@@ -54,34 +52,23 @@ func (uu *UserUpdate) AddAge(i int) *UserUpdate {
 	return uu
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (uu *UserUpdate) AddGroupIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddGroupIDs(ids...)
+// SetSpouseID sets the "spouse" edge to the User entity by ID.
+func (uu *UserUpdate) SetSpouseID(id int) *UserUpdate {
+	uu.mutation.SetSpouseID(id)
 	return uu
 }
 
-// AddGroups adds the "groups" edges to the Group entity.
-func (uu *UserUpdate) AddGroups(g ...*Group) *UserUpdate {
-	ids := make([]int, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// SetNillableSpouseID sets the "spouse" edge to the User entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableSpouseID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetSpouseID(*id)
 	}
-	return uu.AddGroupIDs(ids...)
-}
-
-// AddPetIDs adds the "pets" edge to the Pet entity by IDs.
-func (uu *UserUpdate) AddPetIDs(ids ...int) *UserUpdate {
-	uu.mutation.AddPetIDs(ids...)
 	return uu
 }
 
-// AddPets adds the "pets" edges to the Pet entity.
-func (uu *UserUpdate) AddPets(p ...*Pet) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uu.AddPetIDs(ids...)
+// SetSpouse sets the "spouse" edge to the User entity.
+func (uu *UserUpdate) SetSpouse(u *User) *UserUpdate {
+	return uu.SetSpouseID(u.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -89,46 +76,10 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
 }
 
-// ClearGroups clears all "groups" edges to the Group entity.
-func (uu *UserUpdate) ClearGroups() *UserUpdate {
-	uu.mutation.ClearGroups()
+// ClearSpouse clears the "spouse" edge to the User entity.
+func (uu *UserUpdate) ClearSpouse() *UserUpdate {
+	uu.mutation.ClearSpouse()
 	return uu
-}
-
-// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (uu *UserUpdate) RemoveGroupIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemoveGroupIDs(ids...)
-	return uu
-}
-
-// RemoveGroups removes "groups" edges to Group entities.
-func (uu *UserUpdate) RemoveGroups(g ...*Group) *UserUpdate {
-	ids := make([]int, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return uu.RemoveGroupIDs(ids...)
-}
-
-// ClearPets clears all "pets" edges to the Pet entity.
-func (uu *UserUpdate) ClearPets() *UserUpdate {
-	uu.mutation.ClearPets()
-	return uu
-}
-
-// RemovePetIDs removes the "pets" edge to Pet entities by IDs.
-func (uu *UserUpdate) RemovePetIDs(ids ...int) *UserUpdate {
-	uu.mutation.RemovePetIDs(ids...)
-	return uu
-}
-
-// RemovePets removes "pets" edges to Pet entities.
-func (uu *UserUpdate) RemovePets(p ...*Pet) *UserUpdate {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uu.RemovePetIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -206,106 +157,33 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedAge(); ok {
 		_spec.AddField(user.FieldAge, field.TypeInt, value)
 	}
-	if uu.mutation.GroupsCleared() {
+	if uu.mutation.SpouseCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !uu.mutation.GroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.GroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uu.mutation.PetsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   user.PetsTable,
-			Columns: []string{user.PetsColumn},
-			Bidi:    false,
+			Table:   user.SpouseTable,
+			Columns: []string{user.SpouseColumn},
+			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: pet.FieldID,
+					Column: user.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uu.mutation.RemovedPetsIDs(); len(nodes) > 0 && !uu.mutation.PetsCleared() {
+	if nodes := uu.mutation.SpouseIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   user.PetsTable,
-			Columns: []string{user.PetsColumn},
-			Bidi:    false,
+			Table:   user.SpouseTable,
+			Columns: []string{user.SpouseColumn},
+			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uu.mutation.PetsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.PetsTable,
-			Columns: []string{user.PetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
+					Column: user.FieldID,
 				},
 			},
 		}
@@ -359,34 +237,23 @@ func (uuo *UserUpdateOne) AddAge(i int) *UserUpdateOne {
 	return uuo
 }
 
-// AddGroupIDs adds the "groups" edge to the Group entity by IDs.
-func (uuo *UserUpdateOne) AddGroupIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddGroupIDs(ids...)
+// SetSpouseID sets the "spouse" edge to the User entity by ID.
+func (uuo *UserUpdateOne) SetSpouseID(id int) *UserUpdateOne {
+	uuo.mutation.SetSpouseID(id)
 	return uuo
 }
 
-// AddGroups adds the "groups" edges to the Group entity.
-func (uuo *UserUpdateOne) AddGroups(g ...*Group) *UserUpdateOne {
-	ids := make([]int, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
+// SetNillableSpouseID sets the "spouse" edge to the User entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSpouseID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetSpouseID(*id)
 	}
-	return uuo.AddGroupIDs(ids...)
-}
-
-// AddPetIDs adds the "pets" edge to the Pet entity by IDs.
-func (uuo *UserUpdateOne) AddPetIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.AddPetIDs(ids...)
 	return uuo
 }
 
-// AddPets adds the "pets" edges to the Pet entity.
-func (uuo *UserUpdateOne) AddPets(p ...*Pet) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uuo.AddPetIDs(ids...)
+// SetSpouse sets the "spouse" edge to the User entity.
+func (uuo *UserUpdateOne) SetSpouse(u *User) *UserUpdateOne {
+	return uuo.SetSpouseID(u.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -394,46 +261,10 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
 }
 
-// ClearGroups clears all "groups" edges to the Group entity.
-func (uuo *UserUpdateOne) ClearGroups() *UserUpdateOne {
-	uuo.mutation.ClearGroups()
+// ClearSpouse clears the "spouse" edge to the User entity.
+func (uuo *UserUpdateOne) ClearSpouse() *UserUpdateOne {
+	uuo.mutation.ClearSpouse()
 	return uuo
-}
-
-// RemoveGroupIDs removes the "groups" edge to Group entities by IDs.
-func (uuo *UserUpdateOne) RemoveGroupIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemoveGroupIDs(ids...)
-	return uuo
-}
-
-// RemoveGroups removes "groups" edges to Group entities.
-func (uuo *UserUpdateOne) RemoveGroups(g ...*Group) *UserUpdateOne {
-	ids := make([]int, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return uuo.RemoveGroupIDs(ids...)
-}
-
-// ClearPets clears all "pets" edges to the Pet entity.
-func (uuo *UserUpdateOne) ClearPets() *UserUpdateOne {
-	uuo.mutation.ClearPets()
-	return uuo
-}
-
-// RemovePetIDs removes the "pets" edge to Pet entities by IDs.
-func (uuo *UserUpdateOne) RemovePetIDs(ids ...int) *UserUpdateOne {
-	uuo.mutation.RemovePetIDs(ids...)
-	return uuo
-}
-
-// RemovePets removes "pets" edges to Pet entities.
-func (uuo *UserUpdateOne) RemovePets(p ...*Pet) *UserUpdateOne {
-	ids := make([]int, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
-	}
-	return uuo.RemovePetIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -535,106 +366,33 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.AddedAge(); ok {
 		_spec.AddField(user.FieldAge, field.TypeInt, value)
 	}
-	if uuo.mutation.GroupsCleared() {
+	if uuo.mutation.SpouseCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.RemovedGroupsIDs(); len(nodes) > 0 && !uuo.mutation.GroupsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.GroupsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   user.GroupsTable,
-			Columns: user.GroupsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: group.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if uuo.mutation.PetsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   user.PetsTable,
-			Columns: []string{user.PetsColumn},
-			Bidi:    false,
+			Table:   user.SpouseTable,
+			Columns: []string{user.SpouseColumn},
+			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: pet.FieldID,
+					Column: user.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := uuo.mutation.RemovedPetsIDs(); len(nodes) > 0 && !uuo.mutation.PetsCleared() {
+	if nodes := uuo.mutation.SpouseIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
+			Rel:     sqlgraph.O2O,
 			Inverse: false,
-			Table:   user.PetsTable,
-			Columns: []string{user.PetsColumn},
-			Bidi:    false,
+			Table:   user.SpouseTable,
+			Columns: []string{user.SpouseColumn},
+			Bidi:    true,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: pet.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := uuo.mutation.PetsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   user.PetsTable,
-			Columns: []string{user.PetsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pet.FieldID,
+					Column: user.FieldID,
 				},
 			},
 		}

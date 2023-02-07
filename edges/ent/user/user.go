@@ -13,24 +13,14 @@ const (
 	FieldEmail = "email"
 	// FieldAge holds the string denoting the age field in the database.
 	FieldAge = "age"
-	// EdgeGroups holds the string denoting the groups edge name in mutations.
-	EdgeGroups = "groups"
-	// EdgePets holds the string denoting the pets edge name in mutations.
-	EdgePets = "pets"
+	// EdgeSpouse holds the string denoting the spouse edge name in mutations.
+	EdgeSpouse = "spouse"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
-	GroupsTable = "group_users"
-	// GroupsInverseTable is the table name for the Group entity.
-	// It exists in this package in order to avoid circular dependency with the "group" package.
-	GroupsInverseTable = "groups"
-	// PetsTable is the table that holds the pets relation/edge.
-	PetsTable = "pets"
-	// PetsInverseTable is the table name for the Pet entity.
-	// It exists in this package in order to avoid circular dependency with the "pet" package.
-	PetsInverseTable = "pets"
-	// PetsColumn is the table column denoting the pets relation/edge.
-	PetsColumn = "user_pets"
+	// SpouseTable is the table that holds the spouse relation/edge.
+	SpouseTable = "users"
+	// SpouseColumn is the table column denoting the spouse relation/edge.
+	SpouseColumn = "user_spouse"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -41,16 +31,22 @@ var Columns = []string{
 	FieldAge,
 }
 
-var (
-	// GroupsPrimaryKey and GroupsColumn2 are the table columns denoting the
-	// primary key for the groups relation (M2M).
-	GroupsPrimaryKey = []string{"group_id", "user_id"}
-)
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"group_users",
+	"user_spouse",
+}
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

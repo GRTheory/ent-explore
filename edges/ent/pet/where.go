@@ -4,7 +4,6 @@ package pet
 
 import (
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/GRTheory/ent-explore/edges/ent/predicate"
 )
 
@@ -166,33 +165,6 @@ func AgeLT(v int) predicate.Pet {
 // AgeLTE applies the LTE predicate on the "age" field.
 func AgeLTE(v int) predicate.Pet {
 	return predicate.Pet(sql.FieldLTE(FieldAge, v))
-}
-
-// HasOwner applies the HasEdge predicate on the "owner" edge.
-func HasOwner() predicate.Pet {
-	return predicate.Pet(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
-func HasOwnerWith(preds ...predicate.User) predicate.Pet {
-	return predicate.Pet(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(OwnerInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

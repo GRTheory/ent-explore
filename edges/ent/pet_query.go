@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/GRTheory/ent-explore/edges/ent/pet"
 	"github.com/GRTheory/ent-explore/edges/ent/predicate"
-	"github.com/GRTheory/ent-explore/edges/ent/user"
 )
 
 // PetQuery is the builder for querying Pet entities.
@@ -22,8 +21,6 @@ type PetQuery struct {
 	order      []OrderFunc
 	inters     []Interceptor
 	predicates []predicate.Pet
-	withOwner  *UserQuery
-	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,28 +55,6 @@ func (pq *PetQuery) Unique(unique bool) *PetQuery {
 func (pq *PetQuery) Order(o ...OrderFunc) *PetQuery {
 	pq.order = append(pq.order, o...)
 	return pq
-}
-
-// QueryOwner chains the current query on the "owner" edge.
-func (pq *PetQuery) QueryOwner() *UserQuery {
-	query := (&UserClient{config: pq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := pq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := pq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(pet.Table, pet.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, pet.OwnerTable, pet.OwnerColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Pet entity from the query.
@@ -272,22 +247,10 @@ func (pq *PetQuery) Clone() *PetQuery {
 		order:      append([]OrderFunc{}, pq.order...),
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Pet{}, pq.predicates...),
-		withOwner:  pq.withOwner.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
-}
-
-// WithOwner tells the query-builder to eager-load the nodes that are connected to
-// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *PetQuery) WithOwner(opts ...func(*UserQuery)) *PetQuery {
-	query := (&UserClient{config: pq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	pq.withOwner = query
-	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -366,26 +329,15 @@ func (pq *PetQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *PetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pet, error) {
 	var (
-		nodes       = []*Pet{}
-		withFKs     = pq.withFKs
-		_spec       = pq.querySpec()
-		loadedTypes = [1]bool{
-			pq.withOwner != nil,
-		}
+		nodes = []*Pet{}
+		_spec = pq.querySpec()
 	)
-	if pq.withOwner != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, pet.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Pet).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Pet{config: pq.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -397,46 +349,7 @@ func (pq *PetQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pet, err
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pq.withOwner; query != nil {
-		if err := pq.loadOwner(ctx, query, nodes, nil,
-			func(n *Pet, e *User) { n.Edges.Owner = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (pq *PetQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*Pet, init func(*Pet), assign func(*Pet, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Pet)
-	for i := range nodes {
-		if nodes[i].user_pets == nil {
-			continue
-		}
-		fk := *nodes[i].user_pets
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_pets" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (pq *PetQuery) sqlCount(ctx context.Context) (int, error) {

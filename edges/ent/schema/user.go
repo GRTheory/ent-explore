@@ -25,9 +25,14 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
+	// return []ent.Edge{
+	// 	edge.From("groups", Group.Type).
+	// 		Ref("users"),
+	// 	edge.To("pets", Pet.Type),
+	// }
+
 	return []ent.Edge{
-		edge.From("groups", Group.Type).
-			Ref("users"),
-		edge.To("pets", Pet.Type),
+		edge.To("spouse", User.Type).
+			Unique(),
 	}
 }

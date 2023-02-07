@@ -8,7 +8,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/GRTheory/ent-explore/edges/ent/pet"
-	"github.com/GRTheory/ent-explore/edges/ent/user"
 )
 
 // Pet is the model entity for the Pet schema.
@@ -20,32 +19,6 @@ type Pet struct {
 	Name string `json:"name,omitempty"`
 	// Age holds the value of the "age" field.
 	Age int `json:"age,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the PetQuery when eager-loading is set.
-	Edges     PetEdges `json:"edges"`
-	user_pets *int
-}
-
-// PetEdges holds the relations/edges for other nodes in the graph.
-type PetEdges struct {
-	// Owner holds the value of the owner edge.
-	Owner *User `json:"owner,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// OwnerOrErr returns the Owner value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PetEdges) OwnerOrErr() (*User, error) {
-	if e.loadedTypes[0] {
-		if e.Owner == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: user.Label}
-		}
-		return e.Owner, nil
-	}
-	return nil, &NotLoadedError{edge: "owner"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -57,8 +30,6 @@ func (*Pet) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case pet.FieldName:
 			values[i] = new(sql.NullString)
-		case pet.ForeignKeys[0]: // user_pets
-			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Pet", columns[i])
 		}
@@ -92,21 +63,9 @@ func (pe *Pet) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pe.Age = int(value.Int64)
 			}
-		case pet.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_pets", value)
-			} else if value.Valid {
-				pe.user_pets = new(int)
-				*pe.user_pets = int(value.Int64)
-			}
 		}
 	}
 	return nil
-}
-
-// QueryOwner queries the "owner" edge of the Pet entity.
-func (pe *Pet) QueryOwner() *UserQuery {
-	return NewPetClient(pe.config).QueryOwner(pe)
 }
 
 // Update returns a builder for updating this Pet.

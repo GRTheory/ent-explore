@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
 
@@ -24,8 +23,8 @@ func (Pet) Fields() []ent.Field {
 // Edges of the Pet.
 func (Pet) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", User.Type).
-			Ref("pets").
-			Unique(),
+		// edge.From("owner", User.Type).
+		// 	Ref("pets").
+		// 	Unique(),
 	}
 }

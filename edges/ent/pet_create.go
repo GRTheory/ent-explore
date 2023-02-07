@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/GRTheory/ent-explore/edges/ent/pet"
-	"github.com/GRTheory/ent-explore/edges/ent/user"
 )
 
 // PetCreate is the builder for creating a Pet entity.
@@ -38,25 +37,6 @@ func (pc *PetCreate) SetNillableAge(i *int) *PetCreate {
 		pc.SetAge(*i)
 	}
 	return pc
-}
-
-// SetOwnerID sets the "owner" edge to the User entity by ID.
-func (pc *PetCreate) SetOwnerID(id int) *PetCreate {
-	pc.mutation.SetOwnerID(id)
-	return pc
-}
-
-// SetNillableOwnerID sets the "owner" edge to the User entity by ID if the given value is not nil.
-func (pc *PetCreate) SetNillableOwnerID(id *int) *PetCreate {
-	if id != nil {
-		pc = pc.SetOwnerID(*id)
-	}
-	return pc
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (pc *PetCreate) SetOwner(u *User) *PetCreate {
-	return pc.SetOwnerID(u.ID)
 }
 
 // Mutation returns the PetMutation object of the builder.
@@ -152,26 +132,6 @@ func (pc *PetCreate) createSpec() (*Pet, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Age(); ok {
 		_spec.SetField(pet.FieldAge, field.TypeInt, value)
 		_node.Age = value
-	}
-	if nodes := pc.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   pet.OwnerTable,
-			Columns: []string{pet.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: user.FieldID,
-				},
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.user_pets = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

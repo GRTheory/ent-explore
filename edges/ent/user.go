@@ -23,36 +23,31 @@ type User struct {
 	Age int `json:"age,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges UserEdges `json:"edges"`
+	Edges       UserEdges `json:"edges"`
+	group_users *int
+	user_spouse *int
 }
 
 // UserEdges holds the relations/edges for other nodes in the graph.
 type UserEdges struct {
-	// Groups holds the value of the groups edge.
-	Groups []*Group `json:"groups,omitempty"`
-	// Pets holds the value of the pets edge.
-	Pets []*Pet `json:"pets,omitempty"`
+	// Spouse holds the value of the spouse edge.
+	Spouse *User `json:"spouse,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
-// GroupsOrErr returns the Groups value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) GroupsOrErr() ([]*Group, error) {
+// SpouseOrErr returns the Spouse value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) SpouseOrErr() (*User, error) {
 	if e.loadedTypes[0] {
-		return e.Groups, nil
+		if e.Spouse == nil {
+			// Edge was loaded but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.Spouse, nil
 	}
-	return nil, &NotLoadedError{edge: "groups"}
-}
-
-// PetsOrErr returns the Pets value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) PetsOrErr() ([]*Pet, error) {
-	if e.loadedTypes[1] {
-		return e.Pets, nil
-	}
-	return nil, &NotLoadedError{edge: "pets"}
+	return nil, &NotLoadedError{edge: "spouse"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -64,6 +59,10 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldName, user.FieldEmail:
 			values[i] = new(sql.NullString)
+		case user.ForeignKeys[0]: // group_users
+			values[i] = new(sql.NullInt64)
+		case user.ForeignKeys[1]: // user_spouse
+			values[i] = new(sql.NullInt64)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -103,19 +102,28 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Age = int(value.Int64)
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field group_users", value)
+			} else if value.Valid {
+				u.group_users = new(int)
+				*u.group_users = int(value.Int64)
+			}
+		case user.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field user_spouse", value)
+			} else if value.Valid {
+				u.user_spouse = new(int)
+				*u.user_spouse = int(value.Int64)
+			}
 		}
 	}
 	return nil
 }
 
-// QueryGroups queries the "groups" edge of the User entity.
-func (u *User) QueryGroups() *GroupQuery {
-	return NewUserClient(u.config).QueryGroups(u)
-}
-
-// QueryPets queries the "pets" edge of the User entity.
-func (u *User) QueryPets() *PetQuery {
-	return NewUserClient(u.config).QueryPets(u)
+// QuerySpouse queries the "spouse" edge of the User entity.
+func (u *User) QuerySpouse() *UserQuery {
+	return NewUserClient(u.config).QuerySpouse(u)
 }
 
 // Update returns a builder for updating this User.
